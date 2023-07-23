@@ -1268,15 +1268,15 @@ def submit_barcodes(release_barcode):
 
 
 def submit_isrcs(recording_isrcs):
-    """Submit ISRCs.
+	"""Submit ISRCs.
     Submits a set of {recording-id1: [isrc1, ...], ...}
     or {recording_id1: isrc, ...}.
     """
-    rec2isrcs = dict()
-    for (rec, isrcs) in recording_isrcs.items():
-        rec2isrcs[rec] = isrcs if isinstance(isrcs, list) else [isrcs]
-    query = mbxml.make_isrc_request(rec2isrcs)
-    return _do_mb_post("recording", query)
+	rec2isrcs = {}
+	for (rec, isrcs) in recording_isrcs.items():
+	    rec2isrcs[rec] = isrcs if isinstance(isrcs, list) else [isrcs]
+	query = mbxml.make_isrc_request(rec2isrcs)
+	return _do_mb_post("recording", query)
 
 def submit_tags(**kwargs):
     """Submit user tags.
