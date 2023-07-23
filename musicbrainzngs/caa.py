@@ -51,10 +51,11 @@ def _caa_request(mbid, imageid=None, size=None, entitytype="release"):
     # Construct the full URL for the request, including hostname and
     # query string.
     path = [entitytype, mbid]
-    if imageid and size:
-        path.append(f"{imageid}-{size}")
-    elif imageid:
-        path.append(imageid)
+    if imageid:
+        if size:
+            path.append(f"{imageid}-{size}")
+        else:
+            path.append(imageid)
     url = urllib.parse.urlunparse(
         (
             'https' if https else 'http',
@@ -78,12 +79,7 @@ def _caa_request(mbid, imageid=None, size=None, entitytype="release"):
 
     resp = musicbrainz._safe_read(req)
 
-    if imageid:
-        # If we asked for an image, return the image
-        return resp.content
-    else:
-        # Otherwise it's json
-        return resp.json()
+    return resp.content if imageid else resp.json()
 
 
 def get_image_list(releaseid):

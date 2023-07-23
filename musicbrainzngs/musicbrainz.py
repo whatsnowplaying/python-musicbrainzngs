@@ -210,10 +210,7 @@ class WebServiceError(MusicBrainzError):
 		self.cause = cause
 
 	def __str__(self):
-		if self.message:
-			msg = f"{self.message}, "
-		else:
-			msg = ""
+		msg = f"{self.message}, " if self.message else ""
 		msg += f"caused by: {str(self.cause)}"
 		return msg
 
@@ -522,11 +519,7 @@ def _mb_request(path, method='GET', auth_required=AUTH_NO,
     """
 	global parser_fun
 
-	if args is None:
-	    args = {}
-	else:
-	    args = dict(args) or {}
-
+	args = {} if args is None else dict(args) or {}
 	if _useragent == "":
 	    raise UsageError("set a proper user-agent with "
 	                     "set_useragent(\"application name\", \"application version\", \"contact info (preferably URL or email for your application)\")")
@@ -584,11 +577,7 @@ def _mb_request(path, method='GET', auth_required=AUTH_NO,
 		_log.debug(f"Using auth for {url} because user and pass is set")
 		add_auth = True
 
-	if add_auth:
-	    auth_handler = HTTPDigestAuth(user, password)
-	else:
-	    auth_handler = None
-
+	auth_handler = HTTPDigestAuth(user, password) if add_auth else None
 	allowed_m = ["GET", "POST", "DELETE", "PUT"]
 	if method not in allowed_m:
 		raise ValueError(f"invalid method: {method}")
@@ -607,18 +596,15 @@ def _mb_request(path, method='GET', auth_required=AUTH_NO,
 
 
 def _get_auth_type(entity, id, includes):
-    """ Some calls require authentication. This returns
+	""" Some calls require authentication. This returns
     a constant (Yes, No, IfSet) for the auth status of the call.
     """
-    if "user-tags" in includes or "user-ratings" in includes or "user-genres" in includes:
-        return AUTH_YES
-    elif entity.startswith("collection"):
-        if not id:
-            return AUTH_YES
-        else:
-            return AUTH_IFSET
-    else:
-        return AUTH_NO
+	if "user-tags" in includes or "user-ratings" in includes or "user-genres" in includes:
+		return AUTH_YES
+	elif entity.startswith("collection"):
+		return AUTH_YES if not id else AUTH_IFSET
+	else:
+		return AUTH_NO
 
 
 def _do_mb_query(entity, id, includes=None, params=None):
@@ -1055,10 +1041,7 @@ def _browse_impl(entity, includes, limit, offset, params, release_status=None, r
 	includes = includes if isinstance(includes, list) else [includes]
 	valid_includes = VALID_BROWSE_INCLUDES[entity]
 	_check_includes_impl(includes, valid_includes)
-	p = {}
-	for k,v in params.items():
-	    if v:
-	        p[k] = v
+	p = {k: v for k, v in params.items() if v}
 	if len(p) > 1:
 	    raise Exception("Can't have more than one of " + ", ".join(params.keys()))
 	if limit: p["limit"] = limit
@@ -1271,9 +1254,10 @@ def submit_isrcs(recording_isrcs):
     Submits a set of {recording-id1: [isrc1, ...], ...}
     or {recording_id1: isrc, ...}.
     """
-	rec2isrcs = {}
-	for (rec, isrcs) in recording_isrcs.items():
-	    rec2isrcs[rec] = isrcs if isinstance(isrcs, list) else [isrcs]
+	rec2isrcs = {
+		rec: isrcs if isinstance(isrcs, list) else [isrcs]
+		for rec, isrcs in recording_isrcs.items()
+	}
 	query = mbxml.make_isrc_request(rec2isrcs)
 	return _do_mb_post("recording", query)
 

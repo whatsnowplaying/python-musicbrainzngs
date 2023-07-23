@@ -20,10 +20,7 @@ def fixtag(tag, namespaces):
     if prefix is None:
         prefix = "ns%d" % len(namespaces)
         namespaces[namespace_uri] = prefix
-        if prefix == "xml":
-            xmlns = None
-        else:
-            xmlns = f"xmlns:{prefix}", namespace_uri
+        xmlns = None if prefix == "xml" else (f"xmlns:{prefix}", namespace_uri)
     else:
         xmlns = None
     return f"{prefix}:{tag}", xmlns
@@ -42,9 +39,7 @@ def get_error_message(error):
         root = tree.getroot()
         errors = []
         if root.tag == "error":
-            for ch in root:
-                if ch.tag == "text":
-                    errors.append(ch.text)
+            errors.extend(ch.text for ch in root if ch.tag == "text")
         return errors
     except ET.ParseError:
         return None
@@ -102,7 +97,7 @@ def parse_elements(valid_els, inner_els, element):
             # add counts for lists when available
             m = re.match(r'([a-z0-9-]+)-list', t)
             if m and "count" in sub.attrib:
-                result[f"{m.group(1)}-count"] = int(sub.attrib["count"])
+                result[f"{m[1]}-count"] = int(sub.attrib["count"])
         else:
             _log.info("in <%s>, uncaught <%s>",
                       fixtag(element.tag, NS_MAP)[0], t)
@@ -117,10 +112,7 @@ def parse_attributes(attributes, element):
     """
     result = {}
     for attr in element.attrib:
-        if "{" in attr:
-            a = fixtag(attr, NS_MAP)[0]
-        else:
-            a = attr
+        a = fixtag(attr, NS_MAP)[0] if "{" in attr else attr
         if a in attributes:
             result[a] = element.attrib[attr]
         else:
@@ -379,9 +371,10 @@ def parse_relation(relation):
     return result
 
 def parse_relation_attribute_list(attributelist):
-    ret = []
-    for attribute in attributelist:
-        ret.append(parse_relation_attribute_element(attribute))
+    ret = [
+        parse_relation_attribute_element(attribute)
+        for attribute in attributelist
+    ]
     return (True, {"attributes": ret})
 
 def parse_relation_attribute_element(element):
@@ -392,10 +385,7 @@ def parse_relation_attribute_element(element):
     # -> {"attribute": "number", "value": "BuxWV 1"}
     result = {}
     for attr in element.attrib:
-        if "{" in attr:
-            a = fixtag(attr, NS_MAP)[0]
-        else:
-            a = attr
+        a = fixtag(attr, NS_MAP)[0] if "{" in attr else attr
         result[a] = element.attrib[attr]
     result["attribute"] = element.text
     return result
@@ -570,13 +560,11 @@ def parse_work_attribute_list(wal):
 
 def parse_work_attribute(wa):
     attribs = ["type"]
-    typeinfo = parse_attributes(attribs, wa)
-    result = {}
-    if typeinfo:
-        result = {"attribute": typeinfo["type"],
-                  "value": wa.text}
-
-    return result
+    return (
+        {"attribute": typeinfo["type"], "value": wa.text}
+        if (typeinfo := parse_attributes(attribs, wa))
+        else {}
+    )
 
 
 def parse_url_list(ul):
@@ -621,22 +609,13 @@ def parse_offset_list(ol):
     return [int(o.text) for o in ol]
 
 def parse_instrument_list(rl):
-    result = []
-    for r in rl:
-        result.append(parse_instrument(r))
-    return result
+    return [parse_instrument(r) for r in rl]
 
 def parse_release_list(rl):
-    result = []
-    for r in rl:
-        result.append(parse_release(r))
-    return result
+    return [parse_release(r) for r in rl]
 
 def parse_release_group_list(rgl):
-    result = []
-    for rg in rgl:
-        result.append(parse_release_group(rg))
-    return result
+    return [parse_release_group(rg) for rg in rgl]
 
 def parse_isrc(isrc):
     result = {}
@@ -649,10 +628,7 @@ def parse_isrc(isrc):
     return result
 
 def parse_recording_list(recs):
-    result = []
-    for r in recs:
-        result.append(parse_recording(r))
-    return result
+    return [parse_recording(r) for r in recs]
 
 def parse_artist_credit(ac):
     result = []
@@ -673,11 +649,7 @@ def parse_name_credit(nc):
     return result
 
 def parse_label_info_list(lil):
-    result = []
-
-    for li in lil:
-        result.append(parse_label_info(li))
-    return result
+    return [parse_label_info(li) for li in lil]
 
 def parse_label_info(li):
     result = {}
@@ -688,10 +660,7 @@ def parse_label_info(li):
     return result
 
 def parse_track_list(tl):
-    result = []
-    for t in tl:
-        result.append(parse_track(t))
-    return result
+    return [parse_track(t) for t in tl]
 
 def parse_track(track):
     result = {}

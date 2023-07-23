@@ -114,8 +114,6 @@ def show_collection(collection_id, ctype):
 
     if "release-list" in collection:
         show_releases(collection)
-    else:
-        pass # TODO
 
 def show_releases(collection):
     result = musicbrainzngs.get_releases_in_collection(collection_id, limit=25)
@@ -165,20 +163,16 @@ if __name__ == '__main__':
     if args:
         # Actions for a specific collection.
         collection_id = args[0]
-        if options.add:
-            if option.type == "release":
-                musicbrainzngs.add_releases_to_collection(
-                    collection_id, [options.add]
-                )
-            else:
-                sys.exit("only release collections can be modified ATM")
+        if options.add and option.type == "release":
+            musicbrainzngs.add_releases_to_collection(
+                collection_id, [options.add]
+            )
+        elif options.add or options.remove and option.type != "release":
+            sys.exit("only release collections can be modified ATM")
         elif options.remove:
-            if option.type == "release":
-                musicbrainzngs.remove_releases_from_collection(
-                    collection_id, [options.remove]
-                )
-            else:
-                sys.exit("only release collections can be modified ATM")
+            musicbrainzngs.remove_releases_from_collection(
+                collection_id, [options.remove]
+            )
         else:
             # Print out the collection's contents.
             print("")
