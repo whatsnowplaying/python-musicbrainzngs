@@ -23,10 +23,10 @@ def fixtag(tag, namespaces):
         if prefix == "xml":
             xmlns = None
         else:
-            xmlns = ("xmlns:%s" % prefix, namespace_uri)
+            xmlns = f"xmlns:{prefix}", namespace_uri
     else:
         xmlns = None
-    return "%s:%s" % (prefix, tag), xmlns
+    return f"{prefix}:{tag}", xmlns
 
 
 NS_MAP = {"http://musicbrainz.org/ns/mmd-2.0#": "ws2",
@@ -102,7 +102,7 @@ def parse_elements(valid_els, inner_els, element):
             # add counts for lists when available
             m = re.match(r'([a-z0-9-]+)-list', t)
             if m and "count" in sub.attrib:
-                result["%s-count" % m.group(1)] = int(sub.attrib["count"])
+                result[f"{m.group(1)}-count"] = int(sub.attrib["count"])
         else:
             _log.info("in <%s>, uncaught <%s>",
                       fixtag(element.tag, NS_MAP)[0], t)
@@ -351,7 +351,7 @@ def parse_relation_target(tgt):
 def parse_relation_list(rl):
     attribs = ["target-type"]
     ttype = parse_attributes(attribs, rl)
-    key = "%s-relation-list" % ttype["target-type"]
+    key = f'{ttype["target-type"]}-relation-list'
     return (True, {key: [parse_relation(r) for r in rl]})
 
 def parse_relation(relation):
@@ -781,7 +781,7 @@ def make_tag_request(**kwargs):
     NS = "http://musicbrainz.org/ns/mmd-2.0#"
     root = ET.Element("{%s}metadata" % NS)
     for entity_type in ['artist', 'label', 'place', 'recording', 'release', 'release_group', 'work']:
-        entity_tags = kwargs.pop(entity_type + '_tags', None)
+        entity_tags = kwargs.pop(f'{entity_type}_tags', None)
         if entity_tags is not None:
             e_list = ET.SubElement(root, "{%s}%s-list" % (NS, entity_type.replace('_', '-')))
             for e, tags in entity_tags.items():
@@ -793,7 +793,9 @@ def make_tag_request(**kwargs):
                     name_xml = ET.SubElement(usertag_xml, "{%s}name" % NS)
                     name_xml.text = tag
     if kwargs.keys():
-        raise TypeError("make_tag_request() got an unexpected keyword argument '%s'" % kwargs.popitem()[0])
+        raise TypeError(
+            f"make_tag_request() got an unexpected keyword argument '{kwargs.popitem()[0]}'"
+        )
 
     return ET.tostring(root, "utf-8")
 
@@ -801,7 +803,7 @@ def make_rating_request(**kwargs):
     NS = "http://musicbrainz.org/ns/mmd-2.0#"
     root = ET.Element("{%s}metadata" % NS)
     for entity_type in ['artist', 'label', 'recording', 'release_group', 'work']:
-        entity_ratings = kwargs.pop(entity_type + '_ratings', None)
+        entity_ratings = kwargs.pop(f'{entity_type}_ratings', None)
         if entity_ratings is not None:
             e_list = ET.SubElement(root, "{%s}%s-list" % (NS, entity_type.replace('_', '-')))
             for e, rating in entity_ratings.items():
@@ -810,7 +812,9 @@ def make_rating_request(**kwargs):
                 rating_xml = ET.SubElement(e_xml, "{%s}user-rating" % NS)
                 rating_xml.text = str(rating)
     if kwargs.keys():
-        raise TypeError("make_rating_request() got an unexpected keyword argument '%s'" % kwargs.popitem()[0])
+        raise TypeError(
+            f"make_rating_request() got an unexpected keyword argument '{kwargs.popitem()[0]}'"
+        )
 
     return ET.tostring(root, "utf-8")
 
