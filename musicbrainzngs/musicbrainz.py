@@ -1065,7 +1065,7 @@ def _browse_impl(entity, includes, limit, offset, params, release_status=None, r
 	if limit: p["limit"] = limit
 	if offset: p["offset"] = offset
 	filterp = _check_filter_and_make_params(entity, includes, release_status, release_type)
-	p.update(filterp)
+	p |= filterp
 	return _do_mb_query(entity, "", includes, p)
 
 # Browse methods

@@ -96,7 +96,7 @@ def parse_elements(valid_els, inner_els, element):
         elif t in inner_els.keys():
             inner_result = inner_els[t](sub)
             if isinstance(inner_result, tuple) and inner_result[0]:
-                result.update(inner_result[1])
+                result |= inner_result[1]
             else:
                 result[t] = inner_result
             # add counts for lists when available
@@ -168,7 +168,7 @@ def parse_message(message):
 
                       "message": parse_response_message
                       }
-    result.update(parse_elements([], valid_elements, root))
+    result |= parse_elements([], valid_elements, root)
     return result
 
 def parse_response_message(message):
@@ -187,7 +187,7 @@ def parse_collection(collection):
                  "place-list": parse_place_list,
                  "recording-list": parse_recording_list,
                  "work-list": parse_work_list}
-    result.update(parse_attributes(attribs, collection))
+    result |= parse_attributes(attribs, collection)
     result.update(parse_elements(elements, inner_els, collection))
 
     return result
@@ -199,7 +199,7 @@ def parse_annotation(annotation):
     result = {}
     attribs = ["type", "ext:score"]
     elements = ["entity", "name", "text"]
-    result.update(parse_attributes(attribs, annotation))
+    result |= parse_attributes(attribs, annotation)
     result.update(parse_elements(elements, {}, annotation))
     return result
 
@@ -223,7 +223,7 @@ def parse_area(area):
                  "iso-3166-2-code-list": parse_element_list,
                  "iso-3166-3-code-list": parse_element_list}
 
-    result.update(parse_attributes(attribs, area))
+    result |= parse_attributes(attribs, area)
     result.update(parse_elements(elements, inner_els, area))
 
     return result
@@ -255,7 +255,7 @@ def parse_artist(artist):
                  "alias-list": parse_alias_list,
                  "annotation": parse_annotation}
 
-    result.update(parse_attributes(attribs, artist))
+    result |= parse_attributes(attribs, artist)
     result.update(parse_elements(elements, inner_els, artist))
 
     return result
@@ -280,7 +280,7 @@ def parse_place(place):
                  "relation-list": parse_relation_list,
                  "annotation": parse_annotation}
 
-    result.update(parse_attributes(attribs, place))
+    result |= parse_attributes(attribs, place)
     result.update(parse_elements(elements, inner_els, place))
 
     return result
@@ -299,7 +299,7 @@ def parse_event(event):
                  "user-tag-list": parse_tag_and_genre_list,
                  "rating": parse_rating}
 
-    result.update(parse_attributes(attribs, event))
+    result |= parse_attributes(attribs, event)
     result.update(parse_elements(elements, inner_els, event))
 
     return result
@@ -312,7 +312,7 @@ def parse_instrument(instrument):
                  "tag-list": parse_tag_and_genre_list,
                  "alias-list": parse_alias_list,
                  "annotation": parse_annotation}
-    result.update(parse_attributes(attribs, instrument))
+    result |= parse_attributes(attribs, instrument)
     result.update(parse_elements(elements, inner_els, instrument))
 
     return result
@@ -336,7 +336,7 @@ def parse_label(label):
                  "relation-list": parse_relation_list,
                  "annotation": parse_annotation}
 
-    result.update(parse_attributes(attribs, label))
+    result |= parse_attributes(attribs, label)
     result.update(parse_elements(elements, inner_els, label))
 
     return result
@@ -372,7 +372,7 @@ def parse_relation(relation):
                  "work": parse_work,
                  "target": parse_relation_target
                 }
-    result.update(parse_attributes(attribs, relation))
+    result |= parse_attributes(attribs, relation)
     result.update(parse_elements(elements, inner_els, relation))
     # We parse attribute-list again to get attributes that have both
     # text and attribute values
@@ -421,7 +421,7 @@ def parse_release(release):
                  "cover-art-archive": parse_caa,
                  "release-event-list": parse_release_event_list}
 
-    result.update(parse_attributes(attribs, release))
+    result |= parse_attributes(attribs, release)
     result.update(parse_elements(elements, inner_els, release))
     if "artist-credit" in result:
         result["artist-credit-phrase"] = make_artist_credit(
@@ -455,7 +455,7 @@ def parse_release_event(event):
     elements = ["date"]
     inner_els = {"area": parse_area}
 
-    result.update(parse_elements(elements, inner_els, event))
+    result |= parse_elements(elements, inner_els, event)
     return result
 
 def parse_medium(medium):
@@ -466,7 +466,7 @@ def parse_medium(medium):
                  "track-list": parse_track_list,
                  "data-track-list": parse_track_list}
 
-    result.update(parse_elements(elements, inner_els, medium))
+    result |= parse_elements(elements, inner_els, medium)
     return result
 
 def parse_disc_list(dl):
@@ -491,7 +491,7 @@ def parse_release_group(rg):
                  "rating": parse_rating,
                  "annotation": parse_annotation}
 
-    result.update(parse_attributes(attribs, rg))
+    result |= parse_attributes(attribs, rg)
     result.update(parse_elements(elements, inner_els, rg))
     if "artist-credit" in result:
         result["artist-credit-phrase"] = make_artist_credit(result["artist-credit"])
@@ -513,7 +513,7 @@ def parse_recording(recording):
                  "relation-list": parse_relation_list,
                  "annotation": parse_annotation}
 
-    result.update(parse_attributes(attribs, recording))
+    result |= parse_attributes(attribs, recording)
     result.update(parse_elements(elements, inner_els, recording))
     if "artist-credit" in result:
         result["artist-credit-phrase"] = make_artist_credit(result["artist-credit"])
@@ -531,7 +531,7 @@ def parse_series(series):
                  "relation-list": parse_relation_list,
                  "annotation": parse_annotation}
 
-    result.update(parse_attributes(attribs, series))
+    result |= parse_attributes(attribs, series)
     result.update(parse_elements(elements, inner_els, series))
 
     return result
@@ -562,7 +562,7 @@ def parse_work(work):
                  "language-list": parse_element_list,
     }
 
-    result.update(parse_attributes(attribs, work))
+    result |= parse_attributes(attribs, work)
     result.update(parse_elements(elements, inner_els, work))
 
     return result
@@ -590,7 +590,7 @@ def parse_url(url):
     elements = ["resource"]
     inner_els = {"relation-list": parse_relation_list}
 
-    result.update(parse_attributes(attribs, url))
+    result |= parse_attributes(attribs, url)
     result.update(parse_elements(elements, inner_els, url))
 
     return result
@@ -603,7 +603,7 @@ def parse_disc(disc):
                  "offset-list": parse_offset_list
     }
 
-    result.update(parse_attributes(attribs, disc))
+    result |= parse_attributes(attribs, disc)
     result.update(parse_elements(elements, inner_els, disc))
 
     return result
@@ -614,7 +614,7 @@ def parse_cdstub(cdstub):
     elements = ["title", "artist", "barcode"]
     inner_els = {"track-list": parse_track_list}
 
-    result.update(parse_attributes(attribs, cdstub))
+    result |= parse_attributes(attribs, cdstub)
     result.update(parse_elements(elements, inner_els, cdstub))
 
     return result
@@ -645,7 +645,7 @@ def parse_isrc(isrc):
     attribs = ["id"]
     inner_els = {"recording-list": parse_recording_list}
 
-    result.update(parse_attributes(attribs, isrc))
+    result |= parse_attributes(attribs, isrc)
     result.update(parse_elements([], inner_els, isrc))
 
     return result
@@ -670,7 +670,7 @@ def parse_name_credit(nc):
     elements = ["name"]
     inner_els = {"artist": parse_artist}
 
-    result.update(parse_elements(elements, inner_els, nc))
+    result |= parse_elements(elements, inner_els, nc)
 
     return result
 
@@ -686,7 +686,7 @@ def parse_label_info(li):
     elements = ["catalog-number"]
     inner_els = {"label": parse_label}
 
-    result.update(parse_elements(elements, inner_els, li))
+    result |= parse_elements(elements, inner_els, li)
     return result
 
 def parse_track_list(tl):
@@ -702,7 +702,7 @@ def parse_track(track):
     inner_els = {"recording": parse_recording,
                  "artist-credit": parse_artist_credit}
 
-    result.update(parse_attributes(attribs, track))
+    result |= parse_attributes(attribs, track)
     result.update(parse_elements(elements, inner_els, track))
     if "artist-credit" in result.get("recording", {}) and "artist-credit" not in result:
         result["artist-credit"] = result["recording"]["artist-credit"]
@@ -728,7 +728,7 @@ def parse_tag_and_genre(tag):
     attribs = ["count", "id"]
     elements = ["name"]
 
-    result.update(parse_attributes(attribs, tag))
+    result |= parse_attributes(attribs, tag)
     result.update(parse_elements(elements, {}, tag))
 
     return result
@@ -737,7 +737,7 @@ def parse_rating(rating):
     result = {}
     attribs = ["votes-count"]
 
-    result.update(parse_attributes(attribs, rating))
+    result |= parse_attributes(attribs, rating)
     result["rating"] = rating.text
 
     return result
@@ -750,7 +750,7 @@ def parse_alias(alias):
     attribs = ["locale", "sort-name", "type", "primary",
                "begin-date", "end-date"]
 
-    result.update(parse_attributes(attribs, alias))
+    result |= parse_attributes(attribs, alias)
     result["alias"] = alias.text
 
     return result
@@ -759,7 +759,7 @@ def parse_caa(caa_element):
     result = {}
     elements = ["artwork", "count", "front", "back", "darkened"]
 
-    result.update(parse_elements(elements, {}, caa_element))
+    result |= parse_elements(elements, {}, caa_element)
     return result
 
 
