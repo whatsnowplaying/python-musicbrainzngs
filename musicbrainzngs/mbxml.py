@@ -204,9 +204,7 @@ def parse_annotation(annotation):
     return result
 
 def parse_lifespan(lifespan):
-    parts = parse_elements(["begin", "end", "ended"], {}, lifespan)
-
-    return parts
+    return parse_elements(["begin", "end", "ended"], {}, lifespan)
 
 def parse_area_list(al):
     return [parse_area(a) for a in al]
