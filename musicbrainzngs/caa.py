@@ -50,24 +50,27 @@ def _caa_request(mbid, imageid=None, size=None, entitytype="release"):
     # Construct the full URL for the request, including hostname and
     # query string.
     path = [entitytype, mbid]
-    if imageid and size:
-        path.append("%s-%s" % (imageid, size))
-    elif imageid:
-        path.append(imageid)
-    url = compat.urlunparse((
-        'https' if https else 'http',
-        hostname,
-        '/%s' % '/'.join(path),
-        '',
-        '',
-        ''
-    ))
-    musicbrainz._log.debug("GET request for %s" % (url, ))
+    if imageid:
+        if size:
+            path.append(f"{imageid}-{size}")
+        else:
+            path.append(imageid)
+    url = compat.urlunparse(
+        (
+            'https' if https else 'http',
+            hostname,
+            f"/{'/'.join(path)}",
+            '',
+            '',
+            '',
+        )
+    )
+    musicbrainz._log.debug(f"GET request for {url}")
 
     headers = {}
     if musicbrainz._useragent != "":
         headers['User-Agent'] = musicbrainz._useragent
-        musicbrainz._log.debug("requesting with UA %s" % musicbrainz._useragent)
+        musicbrainz._log.debug(f"requesting with UA {musicbrainz._useragent}")
 
     # Make request.
     req = requests.Request("GET", url, headers=headers)
@@ -75,12 +78,7 @@ def _caa_request(mbid, imageid=None, size=None, entitytype="release"):
 
     resp = musicbrainz._safe_read(req)
 
-    if imageid:
-        # If we asked for an image, return the image
-        return resp.content
-    else:
-        # Otherwise it's json
-        return resp.json()
+    return resp.content if imageid else resp.json()
 
 
 def get_image_list(releaseid):

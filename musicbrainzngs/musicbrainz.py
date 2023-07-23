@@ -31,7 +31,7 @@ LUCENE_SPECIAL = r'([+\-&|!(){}\[\]\^"~*?:\\\/])'
 # Constants for validation.
 
 RELATABLE_TYPES = ['area', 'artist', 'label', 'place', 'event', 'recording', 'release', 'release-group', 'series', 'url', 'work', 'instrument']
-RELATION_INCLUDES = [entity + '-rels' for entity in RELATABLE_TYPES]
+RELATION_INCLUDES = [f'{entity}-rels' for entity in RELATABLE_TYPES]
 TAG_INCLUDES = ["tags", "user-tags", "genres", "user-genres"]
 RATING_INCLUDES = ["ratings", "user-ratings"]
 
@@ -165,16 +165,11 @@ VALID_SEARCH_FIELDS = {
     ]
 }
 
-# Constants
 class AUTH_YES: pass
 class AUTH_NO: pass
 class AUTH_IFSET: pass
-
-
 AUTH_REQUIRED_INCLUDES = ["user-tags", "user-ratings", "user-genres"]
 
-
-# Exceptions.
 
 class MusicBrainzError(Exception):
 	"""Base class for all exceptions related to MusicBrainz."""
@@ -215,11 +210,8 @@ class WebServiceError(MusicBrainzError):
 		self.cause = cause
 
 	def __str__(self):
-		if self.message:
-			msg = "%s, " % self.message
-		else:
-			msg = ""
-		msg += "caused by: %s" % str(self.cause)
+		msg = f"{self.message}, " if self.message else ""
+		msg += f"caused by: {str(self.cause)}"
 		return msg
 
 class NetworkError(WebServiceError):
@@ -319,17 +311,17 @@ def auth(u, p):
 	password = p
 
 def set_useragent(app, version, contact=None):
-    """Set the User-Agent to be used for requests to the MusicBrainz webservice.
+	"""Set the User-Agent to be used for requests to the MusicBrainz webservice.
     This must be set before requests are made."""
-    global _useragent, _client
-    if not app or not version:
-        raise ValueError("App and version can not be empty")
-    if contact is not None:
-        _useragent = "%s/%s python-musicbrainzngs/%s ( %s )" % (app, version, _version, contact)
-    else:
-        _useragent = "%s/%s python-musicbrainzngs/%s" % (app, version, _version)
-    _client = "%s-%s" % (app, version)
-    _log.debug("set user-agent to %s" % _useragent)
+	global _useragent, _client
+	if not app or not version:
+	    raise ValueError("App and version can not be empty")
+	if contact is not None:
+		_useragent = f"{app}/{version} python-musicbrainzngs/{_version} ( {contact} )"
+	else:
+		_useragent = f"{app}/{version} python-musicbrainzngs/{_version}"
+	_client = f"{app}-{version}"
+	_log.debug(f"set user-agent to {_useragent}")
 
 
 def set_hostname(new_hostname, use_https=False):
@@ -490,7 +482,7 @@ def set_parser(new_parser_fun=None):
     parser_fun = new_parser_fun
 
 def set_format(fmt="xml"):
-    """Sets the format that should be returned by the Web Service.
+	"""Sets the format that should be returned by the Web Service.
     The server currently supports `xml` and `json`.
 
     This method will set a default parser for the specified format,
@@ -500,124 +492,115 @@ def set_format(fmt="xml"):
         the json format returned by the `musicbrainzngs` internal parser
         when using the `xml` format! This format may change at any time.
     """
-    global ws_format
-    if fmt == "xml":
-        ws_format = fmt
-        set_parser() # set to default
-    elif fmt == "json":
-        ws_format = fmt
-        warn("The json format is non-official and may change at any time")
-        set_parser(json.loads)
-    else:
-        raise ValueError("invalid format: %s" % fmt)
+	global ws_format
+	if fmt == "xml":
+		ws_format = fmt
+		set_parser() # set to default
+	elif fmt == "json":
+	    ws_format = fmt
+	    warn("The json format is non-official and may change at any time")
+	    set_parser(json.loads)
+	else:
+		raise ValueError(f"invalid format: {fmt}")
 
 
 @_rate_limit
 def _mb_request(path, method='GET', auth_required=AUTH_NO,
                 client_required=False, args=None, data=None, body=None):
-    """Makes a request for the specified `path` (endpoint) on /ws/2 on
+	"""Makes a request for the specified `path` (endpoint) on /ws/2 on
     the globally-specified hostname. Parses the responses and returns
     the resulting object.  `auth_required` and `client_required` control
     whether exceptions should be raised if the username/password and
     client are left unspecified, respectively.
     """
-    global parser_fun
+	global parser_fun
 
-    if args is None:
-        args = {}
-    else:
-        args = dict(args) or {}
+	args = {} if args is None else dict(args) or {}
+	if _useragent == "":
+	    raise UsageError("set a proper user-agent with "
+	                     "set_useragent(\"application name\", \"application version\", \"contact info (preferably URL or email for your application)\")")
 
-    if _useragent == "":
-        raise UsageError("set a proper user-agent with "
-                         "set_useragent(\"application name\", \"application version\", \"contact info (preferably URL or email for your application)\")")
+	if client_required:
+	    args["client"] = _client
 
-    if client_required:
-        args["client"] = _client
+	if ws_format != "xml":
+	    args["fmt"] = ws_format
 
-    if ws_format != "xml":
-        args["fmt"] = ws_format
+	headers = {
+	    "User-Agent": _useragent
+	}
 
-    headers = {
-        "User-Agent": _useragent
-    }
+	if body:
+	    headers['Content-Type'] = 'application/xml; charset=UTF-8'
+	else:
+	    # Explicitly indicate zero content length if no request data
+	    # will be sent (avoids HTTP 411 error).
+	    headers['Content-Length'] = '0'
 
-    if body:
-        headers['Content-Type'] = 'application/xml; charset=UTF-8'
-    else:
-        # Explicitly indicate zero content length if no request data
-        # will be sent (avoids HTTP 411 error).
-        headers['Content-Length'] = '0'
+	# Convert args from a dictionary to a list of tuples
+	# so that the ordering of elements is stable for easy
+	# testing (in this case we order alphabetically)
+	# Encode Unicode arguments using UTF-8.
+	newargs = []
+	for key, value in sorted(args.items()):
+	    if isinstance(value, str):
+	        value = value.encode('utf8')
+	    newargs.append((key, value))
 
-    # Convert args from a dictionary to a list of tuples
-    # so that the ordering of elements is stable for easy
-    # testing (in this case we order alphabetically)
-    # Encode Unicode arguments using UTF-8.
-    newargs = []
-    for key, value in sorted(args.items()):
-        if isinstance(value, str):
-            value = value.encode('utf8')
-        newargs.append((key, value))
+	    # Construct the full URL for the request, including hostname and
+	    # query string.
+	url = compat.urlunparse(
+		(
+			'https' if https else 'http',
+			hostname,
+			f'/ws/2/{path}',
+			'',
+			compat.urlencode(newargs),
+			'',
+		)
+	)
 
-    # Construct the full URL for the request, including hostname and
-    # query string.
-    url = compat.urlunparse((
-        'https' if https else 'http',
-        hostname,
-        '/ws/2/%s' % path,
-        '',
-        compat.urlencode(newargs),
-        ''
-    ))
+	# Add credentials if required.
+	add_auth = False
+	if auth_required == AUTH_YES:
+		_log.debug(f"Auth required for {url}")
+		if not user:
+		    raise UsageError("authorization required; "
+		                     "use auth(user, pass) first")
+		add_auth = True
 
-    # Add credentials if required.
-    add_auth = False
-    if auth_required == AUTH_YES:
-        _log.debug("Auth required for %s" % url)
-        if not user:
-            raise UsageError("authorization required; "
-                             "use auth(user, pass) first")
-        add_auth = True
+	if auth_required == AUTH_IFSET and user:
+		_log.debug(f"Using auth for {url} because user and pass is set")
+		add_auth = True
 
-    if auth_required == AUTH_IFSET and user:
-        _log.debug("Using auth for %s because user and pass is set" % url)
-        add_auth = True
+	auth_handler = HTTPDigestAuth(user, password) if add_auth else None
+	allowed_m = ["GET", "POST", "DELETE", "PUT"]
+	if method not in allowed_m:
+		raise ValueError(f"invalid method: {method}")
 
-    if add_auth:
-        auth_handler = HTTPDigestAuth(user, password)
-    else:
-        auth_handler = None
+	req = requests.Request(
+	    method,
+	    url,
+	    auth=auth_handler,
+	    headers=headers,
+	    data=body,
+	)
 
-    allowed_m = ["GET", "POST", "DELETE", "PUT"]
-    if method not in allowed_m:
-        raise ValueError("invalid method: %s" % method)
+	resp = _safe_read(req)
 
-    req = requests.Request(
-        method,
-        url,
-        auth=auth_handler,
-        headers=headers,
-        data=body,
-    )
-
-    resp = _safe_read(req)
-
-    return parser_fun(resp.content)
+	return parser_fun(resp.content)
 
 
 def _get_auth_type(entity, id, includes):
-    """ Some calls require authentication. This returns
+	""" Some calls require authentication. This returns
     a constant (Yes, No, IfSet) for the auth status of the call.
     """
-    if "user-tags" in includes or "user-ratings" in includes or "user-genres" in includes:
-        return AUTH_YES
-    elif entity.startswith("collection"):
-        if not id:
-            return AUTH_YES
-        else:
-            return AUTH_IFSET
-    else:
-        return AUTH_NO
+	if "user-tags" in includes or "user-ratings" in includes or "user-genres" in includes:
+		return AUTH_YES
+	elif entity.startswith("collection"):
+		return AUTH_YES if not id else AUTH_IFSET
+	else:
+		return AUTH_NO
 
 
 def _do_mb_query(entity, id, includes=[], params={}):
@@ -639,7 +622,7 @@ def _do_mb_query(entity, id, includes=[], params={}):
 		args["inc"] = inc
 
 	# Build the endpoint components.
-	path = '%s/%s' % (entity, id)
+	path = f'{entity}/{id}'
 	return _mb_request(path, 'GET', auth_required, args=args)
 
 def _do_mb_search(entity, query='', fields={},
@@ -658,7 +641,7 @@ def _do_mb_search(entity, query='', fields={},
 			clean_query = re.sub(LUCENE_SPECIAL, r'\\\1',
 					     clean_query)
 			if strict:
-				query_parts.append('"%s"' % clean_query)
+				query_parts.append(f'"{clean_query}"')
 			else:
 				query_parts.append(clean_query.lower())
 		else:
@@ -667,18 +650,17 @@ def _do_mb_search(entity, query='', fields={},
 		# Ensure this is a valid search field.
 		if key not in VALID_SEARCH_FIELDS[entity]:
 			raise InvalidSearchFieldError(
-				'%s is not a valid search field for %s' % (key, entity)
+				f'{key} is not a valid search field for {entity}'
 			)
 
 		# Escape Lucene's special characters.
 		value = util._unicode(value)
-		value = re.sub(LUCENE_SPECIAL, r'\\\1', value)
-		if value:
+		if value := re.sub(LUCENE_SPECIAL, r'\\\1', value):
 			if strict:
-				query_parts.append('%s:"%s"' % (key, value))
+				query_parts.append(f'{key}:"{value}"')
 			else:
 				value = value.lower() # avoid AND / OR
-				query_parts.append('%s:(%s)' % (key, value))
+				query_parts.append(f'{key}:({value})')
 	if strict:
 		full_query = ' AND '.join(query_parts).strip()
 	else:
@@ -975,20 +957,17 @@ def get_works_by_iswc(iswc, includes=[]):
 
 
 def _browse_impl(entity, includes, limit, offset, params, release_status=[], release_type=[]):
-    includes = includes if isinstance(includes, list) else [includes]
-    valid_includes = VALID_BROWSE_INCLUDES[entity]
-    _check_includes_impl(includes, valid_includes)
-    p = {}
-    for k,v in params.items():
-        if v:
-            p[k] = v
-    if len(p) > 1:
-        raise Exception("Can't have more than one of " + ", ".join(params.keys()))
-    if limit: p["limit"] = limit
-    if offset: p["offset"] = offset
-    filterp = _check_filter_and_make_params(entity, includes, release_status, release_type)
-    p.update(filterp)
-    return _do_mb_query(entity, "", includes, p)
+	includes = includes if isinstance(includes, list) else [includes]
+	valid_includes = VALID_BROWSE_INCLUDES[entity]
+	_check_includes_impl(includes, valid_includes)
+	p = {k: v for k, v in params.items() if v}
+	if len(p) > 1:
+	    raise Exception("Can't have more than one of " + ", ".join(params.keys()))
+	if limit: p["limit"] = limit
+	if offset: p["offset"] = offset
+	filterp = _check_filter_and_make_params(entity, includes, release_status, release_type)
+	p |= filterp
+	return _do_mb_query(entity, "", includes, p)
 
 # Browse methods
 # Browse include are a subset of regular get includes, so we check them here
@@ -1107,10 +1086,12 @@ def get_collections():
     return _do_mb_query("collection", '')
 
 def _do_collection_query(collection, collection_type, limit, offset):
-    params = {}
-    if limit: params["limit"] = limit
-    if offset: params["offset"] = offset
-    return _do_mb_query("collection", "%s/%s" % (collection, collection_type), [], params)
+	params = {}
+	if limit: params["limit"] = limit
+	if offset: params["offset"] = offset
+	return _do_mb_query(
+		"collection", f"{collection}/{collection_type}", [], params
+	)
 
 def get_artists_in_collection(collection, limit=None, offset=None):
     """List the artists in a collection.
@@ -1170,15 +1151,16 @@ def submit_barcodes(release_barcode):
 
 
 def submit_isrcs(recording_isrcs):
-    """Submit ISRCs.
+	"""Submit ISRCs.
     Submits a set of {recording-id1: [isrc1, ...], ...}
     or {recording_id1: isrc, ...}.
     """
-    rec2isrcs = dict()
-    for (rec, isrcs) in recording_isrcs.items():
-        rec2isrcs[rec] = isrcs if isinstance(isrcs, list) else [isrcs]
-    query = mbxml.make_isrc_request(rec2isrcs)
-    return _do_mb_post("recording", query)
+	rec2isrcs = {
+		rec: isrcs if isinstance(isrcs, list) else [isrcs]
+		for rec, isrcs in recording_isrcs.items()
+	}
+	query = mbxml.make_isrc_request(rec2isrcs)
+	return _do_mb_post("recording", query)
 
 def submit_tags(**kwargs):
     """Submit user tags.
@@ -1212,16 +1194,16 @@ def submit_ratings(**kwargs):
     return _do_mb_post("rating", query)
 
 def add_releases_to_collection(collection, releases=[]):
-    """Add releases to a collection.
+	"""Add releases to a collection.
     Collection and releases should be identified by their MBIDs
     """
-    # XXX: Maximum URI length of 16kb means we should only allow ~400 releases
-    releaselist = ";".join(releases)
-    return _do_mb_put("collection/%s/releases/%s" % (collection, releaselist))
+	# XXX: Maximum URI length of 16kb means we should only allow ~400 releases
+	releaselist = ";".join(releases)
+	return _do_mb_put(f"collection/{collection}/releases/{releaselist}")
 
 def remove_releases_from_collection(collection, releases=[]):
-    """Remove releases from a collection.
+	"""Remove releases from a collection.
     Collection and releases should be identified by their MBIDs
     """
-    releaselist = ";".join(releases)
-    return _do_mb_delete("collection/%s/releases/%s" % (collection, releaselist))
+	releaselist = ";".join(releases)
+	return _do_mb_delete(f"collection/{collection}/releases/{releaselist}")
