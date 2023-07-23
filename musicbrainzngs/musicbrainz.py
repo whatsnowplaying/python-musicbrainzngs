@@ -1055,10 +1055,7 @@ def _browse_impl(entity, includes, limit, offset, params, release_status=None, r
 	includes = includes if isinstance(includes, list) else [includes]
 	valid_includes = VALID_BROWSE_INCLUDES[entity]
 	_check_includes_impl(includes, valid_includes)
-	p = {}
-	for k,v in params.items():
-	    if v:
-	        p[k] = v
+	p = {k: v for k, v in params.items() if v}
 	if len(p) > 1:
 	    raise Exception("Can't have more than one of " + ", ".join(params.keys()))
 	if limit: p["limit"] = limit
@@ -1271,9 +1268,10 @@ def submit_isrcs(recording_isrcs):
     Submits a set of {recording-id1: [isrc1, ...], ...}
     or {recording_id1: isrc, ...}.
     """
-	rec2isrcs = {}
-	for (rec, isrcs) in recording_isrcs.items():
-	    rec2isrcs[rec] = isrcs if isinstance(isrcs, list) else [isrcs]
+	rec2isrcs = {
+		rec: isrcs if isinstance(isrcs, list) else [isrcs]
+		for rec, isrcs in recording_isrcs.items()
+	}
 	query = mbxml.make_isrc_request(rec2isrcs)
 	return _do_mb_post("recording", query)
 
