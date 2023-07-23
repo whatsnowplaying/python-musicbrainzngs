@@ -424,24 +424,24 @@ class _rate_limit(object):
 # Core (internal) functions for calling the MB API.
 
 def _safe_read(request):
-    """
+	"""
     :param request:
     """
-    # Make request (with retries).
-    with requests.Session() as session:
-        adapter = requests.adapters.HTTPAdapter(max_retries=_retry)
-        session.mount('http://', adapter)
-        session.mount('https://', adapter)
-        try:
-            resp = session.send(request.prepare(), allow_redirects=True)
-            resp.raise_for_status()
-            return resp
-        except requests.HTTPError as exc:
-            if exc.response.status_code == 401:
-                raise AuthenticationError(cause=exc)
-            raise ResponseError(cause=exc)
-        except requests.RequestException as exc:
-            raise NetworkError(cause=exc)
+	    # Make request (with retries).
+	with requests.Session() as session:
+		adapter = requests.adapters.HTTPAdapter(max_retries=_retry)
+		session.mount('http://', adapter)
+		session.mount('https://', adapter)
+		try:
+			resp = session.send(request.prepare(), allow_redirects=True)
+			resp.raise_for_status()
+			return resp
+		except requests.HTTPError as exc:
+			if exc.response.status_code == 401:
+				raise AuthenticationError(cause=exc) from exc
+			raise ResponseError(cause=exc) from exc
+		except requests.RequestException as exc:
+			raise NetworkError(cause=exc) from exc
 
 # Get the XML parsing exceptions to catch. The behavior chnaged with Python 2.7
 # and ElementTree 1.3.
@@ -458,17 +458,17 @@ def mb_parser_null(resp):
     return resp
 
 def mb_parser_xml(resp):
-    """Return a Python dict representing the XML response"""
-    # Parse the response.
-    try:
-        return mbxml.parse_message(resp)
-    except UnicodeError as exc:
-        raise ResponseError(cause=exc)
-    except Exception as exc:
-        if isinstance(exc, ETREE_EXCEPTIONS):
-            raise ResponseError(cause=exc)
-        else:
-            raise
+	"""Return a Python dict representing the XML response"""
+	    # Parse the response.
+	try:
+		return mbxml.parse_message(resp)
+	except UnicodeError as exc:
+		raise ResponseError(cause=exc) from exc
+	except Exception as exc:
+		if isinstance(exc, ETREE_EXCEPTIONS):
+			raise ResponseError(cause=exc) from exc
+		else:
+			raise
 
 # Defaults
 parser_fun = mb_parser_xml
