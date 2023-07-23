@@ -102,7 +102,7 @@ def parse_elements(valid_els, inner_els, element):
             # add counts for lists when available
             m = re.match(r'([a-z0-9-]+)-list', t)
             if m and "count" in sub.attrib:
-                result[f"{m.group(1)}-count"] = int(sub.attrib["count"])
+                result[f"{m[1]}-count"] = int(sub.attrib["count"])
         else:
             _log.info("in <%s>, uncaught <%s>",
                       fixtag(element.tag, NS_MAP)[0], t)
