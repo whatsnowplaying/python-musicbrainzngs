@@ -18,7 +18,7 @@ class SearchUrlTest(_common.RequestsMockingTestCase):
 
     def test_search_annotations(self):
         musicbrainzngs.search_annotations("Pieds")
-        self.assertEquals("https://musicbrainz.org/ws/2/annotation/?query=Pieds", self.last_url)
+        self.assertEqual("https://musicbrainz.org/ws/2/annotation/?query=Pieds", self.last_url)
 
         # Query fields
         musicbrainzngs.search_annotations(entity="bdb24cb5-404b-4f60-bba4-7b730325ae47")
