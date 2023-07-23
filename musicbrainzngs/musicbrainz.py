@@ -245,34 +245,38 @@ def _check_filter(values, valid):
 		if v not in valid:
 			raise InvalidFilterError(v)
 
-def _check_filter_and_make_params(entity, includes, release_status=[], release_type=[]):
-    """Check that the status or type values are valid. Then, check that
+def _check_filter_and_make_params(entity, includes, release_status=None, release_type=None):
+	"""Check that the status or type values are valid. Then, check that
     the filters can be used with the given includes. Return a params
     dict that can be passed to _do_mb_query.
     """
-    if isinstance(release_status, (str, bytes)):
-        release_status = [release_status]
-    if isinstance(release_type, (str, bytes)):
-        release_type = [release_type]
-    _check_filter(release_status, VALID_RELEASE_STATUSES)
-    _check_filter(release_type, VALID_RELEASE_TYPES)
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	if isinstance(release_status, (str, bytes)):
+	    release_status = [release_status]
+	if isinstance(release_type, (str, bytes)):
+	    release_type = [release_type]
+	_check_filter(release_status, VALID_RELEASE_STATUSES)
+	_check_filter(release_type, VALID_RELEASE_TYPES)
 
-    if (release_status
-            and "releases" not in includes and entity != "release"):
-        raise InvalidFilterError("Can't have a status with no release include")
-    if (release_type
-            and "release-groups" not in includes and "releases" not in includes
-            and entity not in ["release-group", "release"]):
-        raise InvalidFilterError("Can't have a release type "
-                "with no releases or release-groups involved")
+	if (release_status
+	        and "releases" not in includes and entity != "release"):
+	    raise InvalidFilterError("Can't have a status with no release include")
+	if (release_type
+	        and "release-groups" not in includes and "releases" not in includes
+	        and entity not in ["release-group", "release"]):
+	    raise InvalidFilterError("Can't have a release type "
+	            "with no releases or release-groups involved")
 
-    # Build parameters.
-    params = {}
-    if len(release_status):
-        params["status"] = "|".join(release_status)
-    if len(release_type):
-        params["type"] = "|".join(release_type)
-    return params
+	# Build parameters.
+	params = {}
+	if len(release_status):
+	    params["status"] = "|".join(release_status)
+	if len(release_type):
+	    params["type"] = "|".join(release_type)
+	return params
 
 def _docstring_get(entity):
     includes = list(VALID_INCLUDES.get(entity, []))
@@ -617,7 +621,7 @@ def _get_auth_type(entity, id, includes):
         return AUTH_NO
 
 
-def _do_mb_query(entity, id, includes=[], params={}):
+def _do_mb_query(entity, id, includes=None, params=None):
 	"""Make a single GET call to the MusicBrainz XML API. `entity` is a
 	string indicated the type of object to be retrieved. The id may be
 	empty, in which case the query is a search. `includes` is a list
@@ -625,6 +629,10 @@ def _do_mb_query(entity, id, includes=[], params={}):
 	is a dictionary of additional parameters for the API call. The
 	response is parsed and returned.
 	"""
+	if includes is None:
+		includes = []
+	if params is None:
+		params = {}
 	# Build arguments.
 	if not isinstance(includes, list):
 		includes = [includes]
@@ -639,14 +647,15 @@ def _do_mb_query(entity, id, includes=[], params={}):
 	path = f'{entity}/{id}'
 	return _mb_request(path, 'GET', auth_required, args=args)
 
-def _do_mb_search(entity, query='', fields={},
-		  limit=None, offset=None, strict=False):
+def _do_mb_search(entity, query='', fields=None, limit=None, offset=None, strict=False):
 	"""Perform a full-text search on the MusicBrainz search server.
 	`query` is a lucene query string when no fields are set,
 	but is escaped when any fields are given. `fields` is a dictionary
 	of key/value query parameters. They keys in `fields` must be valid
 	for the given entity type.
 	"""
+	if fields is None:
+		fields = {}
 	# Encode the query terms as a Lucene query string.
 	query_parts = []
 	if query:
@@ -715,112 +724,171 @@ def _do_mb_post(path, body):
 # Single entity by ID
 
 @_docstring_get("area")
-def get_area_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the area with the MusicBrainz `id` as a dict with an 'area' key.
+def get_area_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the area with the MusicBrainz `id` as a dict with an 'area' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("area", includes,
-                                           release_status, release_type)
-    return _do_mb_query("area", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("area", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("area", id, includes, params)
 
 @_docstring_get("artist")
-def get_artist_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the artist with the MusicBrainz `id` as a dict with an 'artist' key.
+def get_artist_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the artist with the MusicBrainz `id` as a dict with an 'artist' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("artist", includes,
-                                           release_status, release_type)
-    return _do_mb_query("artist", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("artist", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("artist", id, includes, params)
 
 @_docstring_get("instrument")
-def get_instrument_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the instrument with the MusicBrainz `id` as a dict with an 'artist' key.
+def get_instrument_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the instrument with the MusicBrainz `id` as a dict with an 'artist' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("instrument", includes,
-                                           release_status, release_type)
-    return _do_mb_query("instrument", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("instrument", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("instrument", id, includes, params)
 
 @_docstring_get("label")
-def get_label_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the label with the MusicBrainz `id` as a dict with a 'label' key.
+def get_label_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the label with the MusicBrainz `id` as a dict with a 'label' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("label", includes,
-                                           release_status, release_type)
-    return _do_mb_query("label", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("label", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("label", id, includes, params)
 
 @_docstring_get("place")
-def get_place_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the place with the MusicBrainz `id` as a dict with an 'place' key.
+def get_place_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the place with the MusicBrainz `id` as a dict with an 'place' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("place", includes,
-                                           release_status, release_type)
-    return _do_mb_query("place", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("place", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("place", id, includes, params)
 
 @_docstring_get("event")
-def get_event_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the event with the MusicBrainz `id` as a dict with an 'event' key.
+def get_event_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the event with the MusicBrainz `id` as a dict with an 'event' key.
 
     The event dict has the following keys:
     `id`, `type`, `name`, `time`, `disambiguation` and `life-span`.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("event", includes,
-                                           release_status, release_type)
-    return _do_mb_query("event", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("event", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("event", id, includes, params)
 
 @_docstring_get("recording")
-def get_recording_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the recording with the MusicBrainz `id` as a dict
+def get_recording_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the recording with the MusicBrainz `id` as a dict
     with a 'recording' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("recording", includes,
-                                           release_status, release_type)
-    return _do_mb_query("recording", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("recording", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("recording", id, includes, params)
 
 @_docstring_get("release")
-def get_release_by_id(id, includes=[], release_status=[], release_type=[]):
-    """Get the release with the MusicBrainz `id` as a dict with a 'release' key.
+def get_release_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the release with the MusicBrainz `id` as a dict with a 'release' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("release", includes,
-                                           release_status, release_type)
-    return _do_mb_query("release", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("release", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("release", id, includes, params)
 
 @_docstring_get("release-group")
-def get_release_group_by_id(id, includes=[],
-                            release_status=[], release_type=[]):
-    """Get the release group with the MusicBrainz `id` as a dict
+def get_release_group_by_id(id, includes=None, release_status=None, release_type=None):
+	"""Get the release group with the MusicBrainz `id` as a dict
     with a 'release-group' key.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("release-group", includes,
-                                           release_status, release_type)
-    return _do_mb_query("release-group", id, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("release-group", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("release-group", id, includes, params)
 
 @_docstring_get("series")
-def get_series_by_id(id, includes=[]):
-    """Get the series with the MusicBrainz `id` as a dict with a 'series' key.
+def get_series_by_id(id, includes=None):
+	"""Get the series with the MusicBrainz `id` as a dict with a 'series' key.
 
     *Available includes*: {includes}"""
-    return _do_mb_query("series", id, includes)
+	if includes is None:
+		includes = []
+	return _do_mb_query("series", id, includes)
 
 @_docstring_get("work")
-def get_work_by_id(id, includes=[]):
-    """Get the work with the MusicBrainz `id` as a dict with a 'work' key.
+def get_work_by_id(id, includes=None):
+	"""Get the work with the MusicBrainz `id` as a dict with a 'work' key.
 
     *Available includes*: {includes}"""
-    return _do_mb_query("work", id, includes)
+	if includes is None:
+		includes = []
+	return _do_mb_query("work", id, includes)
 
 @_docstring_get("url")
-def get_url_by_id(id, includes=[]):
-    """Get the url with the MusicBrainz `id` as a dict with a 'url' key.
+def get_url_by_id(id, includes=None):
+	"""Get the url with the MusicBrainz `id` as a dict with a 'url' key.
 
     *Available includes*: {includes}"""
-    return _do_mb_query("url", id, includes)
+	if includes is None:
+		includes = []
+	return _do_mb_query("url", id, includes)
 
 
 # Searching
@@ -915,8 +983,8 @@ def search_works(query='', limit=None, offset=None, strict=False, **fields):
 
 # Lists of entities
 @_docstring_get("discid")
-def get_releases_by_discid(id, includes=[], toc=None, cdstubs=True, media_format=None):
-    """Search for releases with a :musicbrainz:`Disc ID` or table of contents.
+def get_releases_by_discid(id, includes=None, toc=None, cdstubs=True, media_format=None):
+	"""Search for releases with a :musicbrainz:`Disc ID` or table of contents.
 
     When a `toc` is provided and no release with the disc ID is found,
     a fuzzy search by the toc is done.
@@ -939,114 +1007,132 @@ def get_releases_by_discid(id, includes=[], toc=None, cdstubs=True, media_format
     A 'cdstub' key has direct 'artist' and 'title' keys.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("discid", includes, release_status=[],
-                                           release_type=[])
-    if toc:
-        params["toc"] = toc
-    if not cdstubs:
-        params["cdstubs"] = "no"
-    if media_format:
-        params["media-format"] = media_format
-    return _do_mb_query("discid", id, includes, params)
+	if includes is None:
+		includes = []
+	params = _check_filter_and_make_params("discid", includes, release_status=[],
+	                                       release_type=[])
+	if toc:
+	    params["toc"] = toc
+	if not cdstubs:
+	    params["cdstubs"] = "no"
+	if media_format:
+	    params["media-format"] = media_format
+	return _do_mb_query("discid", id, includes, params)
 
 
 @_docstring_get("recording")
-def get_recordings_by_isrc(isrc, includes=[], release_status=[],
-                           release_type=[]):
-    """Search for recordings with an :musicbrainz:`ISRC`.
+def get_recordings_by_isrc(isrc, includes=None, release_status=None, release_type=None):
+	"""Search for recordings with an :musicbrainz:`ISRC`.
     The result is a dict with an 'isrc' key,
     which again includes a 'recording-list'.
 
     *Available includes*: {includes}"""
-    params = _check_filter_and_make_params("isrc", includes,
-                                           release_status, release_type)
-    return _do_mb_query("isrc", isrc, includes, params)
+	if includes is None:
+		includes = []
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	params = _check_filter_and_make_params("isrc", includes,
+	                                       release_status, release_type)
+	return _do_mb_query("isrc", isrc, includes, params)
 
 @_docstring_get("work")
-def get_works_by_iswc(iswc, includes=[]):
-    """Search for works with an :musicbrainz:`ISWC`.
+def get_works_by_iswc(iswc, includes=None):
+	"""Search for works with an :musicbrainz:`ISWC`.
     The result is a dict with a`work-list`.
 
     *Available includes*: {includes}"""
-    return _do_mb_query("iswc", iswc, includes)
+	if includes is None:
+		includes = []
+	return _do_mb_query("iswc", iswc, includes)
 
 
-def _browse_impl(entity, includes, limit, offset, params, release_status=[], release_type=[]):
-    includes = includes if isinstance(includes, list) else [includes]
-    valid_includes = VALID_BROWSE_INCLUDES[entity]
-    _check_includes_impl(includes, valid_includes)
-    p = {}
-    for k,v in params.items():
-        if v:
-            p[k] = v
-    if len(p) > 1:
-        raise Exception("Can't have more than one of " + ", ".join(params.keys()))
-    if limit: p["limit"] = limit
-    if offset: p["offset"] = offset
-    filterp = _check_filter_and_make_params(entity, includes, release_status, release_type)
-    p.update(filterp)
-    return _do_mb_query(entity, "", includes, p)
+def _browse_impl(entity, includes, limit, offset, params, release_status=None, release_type=None):
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	includes = includes if isinstance(includes, list) else [includes]
+	valid_includes = VALID_BROWSE_INCLUDES[entity]
+	_check_includes_impl(includes, valid_includes)
+	p = {}
+	for k,v in params.items():
+	    if v:
+	        p[k] = v
+	if len(p) > 1:
+	    raise Exception("Can't have more than one of " + ", ".join(params.keys()))
+	if limit: p["limit"] = limit
+	if offset: p["offset"] = offset
+	filterp = _check_filter_and_make_params(entity, includes, release_status, release_type)
+	p.update(filterp)
+	return _do_mb_query(entity, "", includes, p)
 
 # Browse methods
 # Browse include are a subset of regular get includes, so we check them here
 # and the test in _do_mb_query will pass anyway.
 @_docstring_browse("artist")
-def browse_artists(recording=None, release=None, release_group=None,
-                   work=None, includes=[], limit=None, offset=None):
-    """Get all artists linked to a recording, a release or a release group.
+def browse_artists(recording=None, release=None, release_group=None, work=None, includes=None, limit=None, offset=None):
+	"""Get all artists linked to a recording, a release or a release group.
     You need to give one MusicBrainz ID.
 
     *Available includes*: {includes}"""
-    params = {"recording": recording,
-              "release": release,
-              "release-group": release_group,
-              "work": work}
-    return _browse_impl("artist", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"recording": recording,
+	          "release": release,
+	          "release-group": release_group,
+	          "work": work}
+	return _browse_impl("artist", includes, limit, offset, params)
 
 @_docstring_browse("event")
-def browse_events(area=None, artist=None, place=None,
-                   includes=[], limit=None, offset=None):
-    """Get all events linked to a area, a artist or a place.
+def browse_events(area=None, artist=None, place=None, includes=None, limit=None, offset=None):
+	"""Get all events linked to a area, a artist or a place.
     You need to give one MusicBrainz ID.
 
     *Available includes*: {includes}"""
-    params = {"area": area,
-              "artist": artist,
-              "place": place}
-    return _browse_impl("event", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"area": area,
+	          "artist": artist,
+	          "place": place}
+	return _browse_impl("event", includes, limit, offset, params)
 
 @_docstring_browse("label")
-def browse_labels(release=None, includes=[], limit=None, offset=None):
-    """Get all labels linked to a relase. You need to give a MusicBrainz ID.
+def browse_labels(release=None, includes=None, limit=None, offset=None):
+	"""Get all labels linked to a relase. You need to give a MusicBrainz ID.
 
     *Available includes*: {includes}"""
-    params = {"release": release}
-    return _browse_impl("label", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"release": release}
+	return _browse_impl("label", includes, limit, offset, params)
 
 @_docstring_browse("place")
-def browse_places(area=None, includes=[], limit=None, offset=None):
-    """Get all places linked to an area. You need to give a MusicBrainz ID.
+def browse_places(area=None, includes=None, limit=None, offset=None):
+	"""Get all places linked to an area. You need to give a MusicBrainz ID.
 
     *Available includes*: {includes}"""
-    params = {"area": area}
-    return _browse_impl("place", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"area": area}
+	return _browse_impl("place", includes, limit, offset, params)
 
 @_docstring_browse("recording")
-def browse_recordings(artist=None, release=None, includes=[],
-                      limit=None, offset=None):
-    """Get all recordings linked to an artist or a release.
+def browse_recordings(artist=None, release=None, includes=None, limit=None, offset=None):
+	"""Get all recordings linked to an artist or a release.
     You need to give one MusicBrainz ID.
 
     *Available includes*: {includes}"""
-    params = {"artist": artist,
-              "release": release}
-    return _browse_impl("recording", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"artist": artist,
+	          "release": release}
+	return _browse_impl("recording", includes, limit, offset, params)
 
 @_docstring_browse("release")
-def browse_releases(artist=None, track_artist=None, label=None, recording=None,
-                    release_group=None, release_status=[], release_type=[],
-                    includes=[], limit=None, offset=None):
-    """Get all releases linked to an artist, a label, a recording
+def browse_releases(artist=None, track_artist=None, label=None, recording=None, release_group=None, release_status=None, release_type=None, includes=None, limit=None, offset=None):
+	"""Get all releases linked to an artist, a label, a recording
     or a release group. You need to give one MusicBrainz ID.
 
     You can also browse by `track_artist`, which gives all releases where some
@@ -1056,45 +1142,58 @@ def browse_releases(artist=None, track_artist=None, label=None, recording=None,
     :data:`musicbrainz.VALID_RELEASE_STATUSES`.
 
     *Available includes*: {includes}"""
-    # track_artist param doesn't work yet
-    params = {"artist": artist,
-              "track_artist": track_artist,
-              "label": label,
-              "recording": recording,
-              "release-group": release_group}
-    return _browse_impl("release", includes, limit, offset,
-                        params, release_status, release_type)
+	if release_status is None:
+		release_status = []
+	if release_type is None:
+		release_type = []
+	if includes is None:
+		includes = []
+	# track_artist param doesn't work yet
+	params = {"artist": artist,
+	          "track_artist": track_artist,
+	          "label": label,
+	          "recording": recording,
+	          "release-group": release_group}
+	return _browse_impl("release", includes, limit, offset,
+	                    params, release_status, release_type)
 
 @_docstring_browse("release-group")
-def browse_release_groups(artist=None, release=None, release_type=[],
-                          includes=[], limit=None, offset=None):
-    """Get all release groups linked to an artist or a release.
+def browse_release_groups(artist=None, release=None, release_type=None, includes=None, limit=None, offset=None):
+	"""Get all release groups linked to an artist or a release.
     You need to give one MusicBrainz ID.
 
     You can filter by :data:`musicbrainz.VALID_RELEASE_TYPES`.
 
     *Available includes*: {includes}"""
-    params = {"artist": artist,
-              "release": release}
-    return _browse_impl("release-group", includes, limit,
-                        offset, params, [], release_type)
+	if release_type is None:
+		release_type = []
+	if includes is None:
+		includes = []
+	params = {"artist": artist,
+	          "release": release}
+	return _browse_impl("release-group", includes, limit,
+	                    offset, params, [], release_type)
 
 @_docstring_browse("url")
-def browse_urls(resource=None, includes=[], limit=None, offset=None):
-    """Get urls by actual URL string.
+def browse_urls(resource=None, includes=None, limit=None, offset=None):
+	"""Get urls by actual URL string.
     You need to give a URL string as 'resource'
 
     *Available includes*: {includes}"""
-    params = {"resource": resource}
-    return _browse_impl("url", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"resource": resource}
+	return _browse_impl("url", includes, limit, offset, params)
 
 @_docstring_browse("work")
-def browse_works(artist=None, includes=[], limit=None, offset=None):
-    """Get all works linked to an artist
+def browse_works(artist=None, includes=None, limit=None, offset=None):
+	"""Get all works linked to an artist
 
     *Available includes*: {includes}"""
-    params = {"artist": artist}
-    return _browse_impl("work", includes, limit, offset, params)
+	if includes is None:
+		includes = []
+	params = {"artist": artist}
+	return _browse_impl("work", includes, limit, offset, params)
 
 # Collections
 def get_collections():
@@ -1210,17 +1309,21 @@ def submit_ratings(**kwargs):
     query = mbxml.make_rating_request(**kwargs)
     return _do_mb_post("rating", query)
 
-def add_releases_to_collection(collection, releases=[]):
+def add_releases_to_collection(collection, releases=None):
 	"""Add releases to a collection.
     Collection and releases should be identified by their MBIDs
     """
+	if releases is None:
+		releases = []
 	# XXX: Maximum URI length of 16kb means we should only allow ~400 releases
 	releaselist = ";".join(releases)
 	return _do_mb_put(f"collection/{collection}/releases/{releaselist}")
 
-def remove_releases_from_collection(collection, releases=[]):
+def remove_releases_from_collection(collection, releases=None):
 	"""Remove releases from a collection.
     Collection and releases should be identified by their MBIDs
     """
+	if releases is None:
+		releases = []
 	releaselist = ";".join(releases)
 	return _do_mb_delete(f"collection/{collection}/releases/{releaselist}")
