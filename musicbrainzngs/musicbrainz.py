@@ -678,8 +678,7 @@ def _do_mb_search(entity, query='', fields=None, limit=None, offset=None, strict
 
 		# Escape Lucene's special characters.
 		value = util._unicode(value)
-		value = re.sub(LUCENE_SPECIAL, r'\\\1', value)
-		if value:
+		if value := re.sub(LUCENE_SPECIAL, r'\\\1', value):
 			if strict:
 				query_parts.append(f'{key}:"{value}"')
 			else:
