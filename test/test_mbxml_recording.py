@@ -12,33 +12,33 @@ class GetRecordingTest(unittest.TestCase):
 
     def testRecordingRelationCreditedAs(self):
         # some performance relations have a "credited-as" attribute
-        res = _common.open_and_parse_test_data(self.datadir, "f606f733-c1eb-43f3-93c1-71994ea611e3-artist-rels.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "f606f733-c1eb-43f3-93c1-71994ea611e3_inc=artist-rels.xml")
 
         recording = res["recording"]
         rels = recording["artist-relation-list"]
 
-        self.assertEqual(4, len(rels))
+        self.assertEqual(5, len(rels))
         # Original attributes
         print(rels[0])
         print(rels[1])
         print(rels[2])
         print(rels[3])
-        attributes = rels[0]["attribute-list"]
+        attributes = rels[1]["attribute-list"]
         self.assertEqual("piano", attributes[0])
 
         # New attribute dict format
-        attributes = rels[0]["attributes"]
+        attributes = rels[1]["attributes"]
         expected = {"attribute": "piano",
                     "credited-as": "Yamaha and Steinway pianos",
                     "type-id": "b3eac5f9-7859-4416-ac39-7154e2e8d348"}
         self.assertEqual(expected, attributes[0])
 
     def testFirstReleaseDate(self):
-        res = _common.open_and_parse_test_data(self.datadir, "f606f733-c1eb-43f3-93c1-71994ea611e3-artist-rels.xml")
-        self.assertEqual(res["recording"]["first-release-date"], "1984")
+        res = _common.open_and_parse_test_data(self.datadir, "f606f733-c1eb-43f3-93c1-71994ea611e3_inc=artist-rels.xml")
+        self.assertEqual(res["recording"]["first-release-date"], "1984-03")
 
     def testTagsAndGenres(self):
-        res = _common.open_and_parse_test_data(self.datadir, "58169b2c-e31a-4a46-8741-71c672a089ac-tags-genres.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "58169b2c-e31a-4a46-8741-71c672a089ac_inc=tags_genres.xml")
         recording = res["recording"]
 
         tags = recording["tag-list"]

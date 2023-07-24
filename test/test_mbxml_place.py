@@ -10,11 +10,11 @@ class PlaceTest(unittest.TestCase):
         self.datadir = os.path.join(os.path.dirname(__file__), "data", "place")
 
     def testPlace(self):
-        filename = "0c79cdbb-acd6-4e30-aaa3-a5c8d6b36a48-aliases-tags.xml"
+        filename = "0c79cdbb-acd6-4e30-aaa3-a5c8d6b36a48_inc=aliases_tags.xml"
         res = _common.open_and_parse_test_data(self.datadir, filename)
 
         p = res["place"]
-        self.assertEqual("All Saints' Church", p["name"])
+        self.assertEqual("All Saints’ Church", p["name"])
         self.assertEqual("East Finchley, Durham Road", p["disambiguation"])
         self.assertEqual("38 Durham Road, London N2 9DP, United Kingdom", p["address"])
         self.assertEqual({"latitude": "51.591812", "longitude": "-0.159699"}, p["coordinates"])
@@ -25,10 +25,9 @@ class PlaceTest(unittest.TestCase):
         self.assertEqual("1", p["tag-list"][0]["count"])
 
     def testListFromBrowse(self):
-        filename = "browse-area-74e50e58-5deb-4b99-93a2-decbb365c07f-annotation.xml"
+        filename = "_area=f1724242-d9e8-40bd-a1d6-2add4b0c24ec&inc=annotation.xml"
         res = _common.open_and_parse_test_data(self.datadir, filename)
 
-        self.assertEqual(395, res["place-count"])
-        self.assertEqual(25, len(res["place-list"]))
-
-        self.assertTrue(res["place-list"][13]["annotation"]["text"].startswith("was later renamed"))
+        self.assertEqual(21, res["place-count"])
+        self.assertEqual(21, len(res["place-list"]))
+        self.assertTrue(res["place-list"][13]["annotation"]["text"].startswith("the \"Columbia Studios\" it was"))
