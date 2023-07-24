@@ -49,73 +49,73 @@ class GetCollectionTest(unittest.TestCase):
         """
         Test that the id, name and author are given.
         """
-        res = _common.open_and_parse_test_data(self.datadir, "0b15c97c-8eb8-4b4f-81c3-0eb24266a2ac-releases.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "0b15c97c-8eb8-4b4f-81c3-0eb24266a2ac_releases.xml")
 
     def testCollectionReleases(self):
         """
         Test that the list of releases is given.
         """
-        res = _common.open_and_parse_test_data(self.datadir, "0b15c97c-8eb8-4b4f-81c3-0eb24266a2ac-releases.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "0b15c97c-8eb8-4b4f-81c3-0eb24266a2ac_releases.xml")
         coll = res["collection"]
         self.assertEqual(coll["id"], "0b15c97c-8eb8-4b4f-81c3-0eb24266a2ac")
         self.assertEqual(coll["name"], "My Collection")
         self.assertEqual(coll["editor"], "JonnyJD")
         self.assertEqual(coll["entity-type"], "release")
-        self.assertEqual(coll["type"], "Release")
+        self.assertEqual(coll["type"], "Release collection")
         self.assertEqual(coll["release-count"], 400)
         self.assertTrue("release-list" in res["collection"])
 
     def testCollectionWorks(self):
-        res = _common.open_and_parse_test_data(self.datadir, "2326c2e8-be4b-4300-acc6-dbd0adf5645b-works.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "2326c2e8-be4b-4300-acc6-dbd0adf5645b_works.xml")
         coll = res["collection"]
         self.assertEqual(coll["id"], "2326c2e8-be4b-4300-acc6-dbd0adf5645b")
         self.assertEqual(coll["name"], "work collection")
         self.assertEqual(coll["editor"], "alastairp")
         self.assertEqual(coll["entity-type"], "work")
-        self.assertEqual(coll["type"], "Work")
+        self.assertEqual(coll["type"], "Work collection")
         self.assertEqual(coll["work-count"], 1)
         self.assertEqual(len(coll["work-list"]), 1)
 
     def testCollectionArtists(self):
-        res = _common.open_and_parse_test_data(self.datadir, "29611d8b-b3ad-4ffb-acb5-27f77342a5b0-artists.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "29611d8b-b3ad-4ffb-acb5-27f77342a5b0_artists.xml")
         coll = res["collection"]
         self.assertEqual(coll["id"], "29611d8b-b3ad-4ffb-acb5-27f77342a5b0")
         self.assertEqual(coll["name"], "artist collection")
         self.assertEqual(coll["editor"], "alastairp")
         self.assertEqual(coll["entity-type"], "artist")
-        self.assertEqual(coll["type"], "Artist")
+        self.assertEqual(coll["type"], "Artist collection")
         self.assertEqual(coll["artist-count"], 1)
         self.assertEqual(len(coll["artist-list"]), 1)
 
     def testCollectionEvents(self):
-        res = _common.open_and_parse_test_data(self.datadir, "20562e36-c7cc-44fb-96b4-486d51a1174b-events.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "20562e36-c7cc-44fb-96b4-486d51a1174b_events.xml")
         coll = res["collection"]
         self.assertEqual(coll["id"], "20562e36-c7cc-44fb-96b4-486d51a1174b")
         self.assertEqual(coll["name"], "event collection")
         self.assertEqual(coll["editor"], "alastairp")
         self.assertEqual(coll["entity-type"], "event")
-        self.assertEqual(coll["type"], "Event")
+        self.assertEqual(coll["type"], "Event collection")
         self.assertEqual(coll["event-count"], 1)
         self.assertEqual(len(coll["event-list"]), 1)
 
     def testCollectionPlaces(self):
-        res = _common.open_and_parse_test_data(self.datadir, "855b134e-9a3b-4717-8df8-8c4838d89924-places.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "855b134e-9a3b-4717-8df8-8c4838d89924_places.xml")
         coll = res["collection"]
         self.assertEqual(coll["id"], "855b134e-9a3b-4717-8df8-8c4838d89924")
         self.assertEqual(coll["name"], "place collection")
         self.assertEqual(coll["editor"], "alastairp")
         self.assertEqual(coll["entity-type"], "place")
-        self.assertEqual(coll["type"], "Place")
+        self.assertEqual(coll["type"], "Place collection")
         self.assertEqual(coll["place-count"], 1)
         self.assertEqual(len(coll["place-list"]), 1)
 
     def testCollectionRecordings(self):
-        res = _common.open_and_parse_test_data(self.datadir, "a91320b2-fd2f-4a93-9e4e-603d16d514b6-recordings.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "a91320b2-fd2f-4a93-9e4e-603d16d514b6_recordings.xml")
         coll = res["collection"]
         self.assertEqual(coll["id"], "a91320b2-fd2f-4a93-9e4e-603d16d514b6")
         self.assertEqual(coll["name"], "recording collection")
         self.assertEqual(coll["editor"], "alastairp")
         self.assertEqual(coll["entity-type"], "recording")
-        self.assertEqual(coll["type"], "Recording")
+        self.assertEqual(coll["type"], "Recording collection")
         self.assertEqual(coll["recording-count"], 1)
         self.assertEqual(len(coll["recording-list"]), 1)

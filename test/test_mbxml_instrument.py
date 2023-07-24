@@ -17,10 +17,10 @@ class GetInstrumentTest(unittest.TestCase):
         self.assertEqual(inst["id"], "9447c0af-5569-48f2-b4c5-241105d58c91")
         self.assertEqual(inst["name"], "bass saxophone")
         self.assertEqual(inst["type"], "Wind instrument")
-        self.assertTrue(inst["description"].startswith("The bass saxophone"))
+        self.assertTrue(inst["description"].startswith("Second largest and lowest member"))
 
     def testAliases(self):
-        res = _common.open_and_parse_test_data(self.datadir, "6505f98c-f698-4406-8bf4-8ca43d05c36f-aliases.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "6505f98c-f698-4406-8bf4-8ca43d05c36f_inc=aliases.xml")
         inst = res["instrument"]
 
         aliases = inst["alias-list"]
@@ -33,40 +33,40 @@ class GetInstrumentTest(unittest.TestCase):
 
 
     def testTags(self):
-        res = _common.open_and_parse_test_data(self.datadir, "6505f98c-f698-4406-8bf4-8ca43d05c36f-tags.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "6505f98c-f698-4406-8bf4-8ca43d05c36f_inc=tags.xml")
         inst = res["instrument"]
 
         tags = inst["tag-list"]
-        self.assertEqual(len(tags), 3)
-        self.assertEqual(tags[0]["name"], "fixme")
+        self.assertEqual(len(tags), 2)
+        self.assertEqual(tags[0]["name"], "contra")
         self.assertEqual(tags[0]["count"], "1")
 
     def testUrlRels(self):
-        res = _common.open_and_parse_test_data(self.datadir, "d00cec5f-f9bc-4235-a54f-6639a02d4e4c-url-rels.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "d00cec5f-f9bc-4235-a54f-6639a02d4e4c_inc=url-rels.xml")
         inst = res["instrument"]
 
         rels = inst["url-relation-list"]
-        self.assertEqual(len(rels), 3)
-        self.assertEqual(rels[0]["type"], "information page")
-        self.assertEqual(rels[0]["type-id"], "0e62afec-12f3-3d0f-b122-956207839854")
-        self.assertTrue(rels[0]["target"].startswith("http://en.wikisource"))
+        self.assertEqual(len(rels), 4)
+        self.assertEqual(rels[1]["type"], "information page")
+        self.assertEqual(rels[1]["type-id"], "0e62afec-12f3-3d0f-b122-956207839854")
+        self.assertTrue(rels[1]["target"].startswith("https://en.wikisource"))
 
     def testAnnotations(self):
-        res = _common.open_and_parse_test_data(self.datadir, "d00cec5f-f9bc-4235-a54f-6639a02d4e4c-annotation.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "10ee2ae4-d9b6-46af-9250-6d853af7051e_inc=annotation.xml")
         inst = res["instrument"]
-        self.assertEqual(inst["annotation"]["text"], "Hornbostel-Sachs: 412.22")
+        self.assertEqual(inst["annotation"]["text"], "Hornbostel-Sachs: 133.2")
 
     def testInstrumentRels(self):
-        res = _common.open_and_parse_test_data(self.datadir, "01ba56a2-4306-493d-8088-c7e9b671c74e-instrument-rels.xml")
+        res = _common.open_and_parse_test_data(self.datadir, "01ba56a2-4306-493d-8088-c7e9b671c74e_inc=instrument-rels.xml")
         inst = res["instrument"]
 
         rels = inst["instrument-relation-list"]
         self.assertEqual(len(rels), 3)
-        self.assertEqual(rels[1]["type"], "children")
-        self.assertEqual(rels[1]["type-id"], "12678b88-1adb-3536-890e-9b39b9a14b2d")
-        self.assertEqual(rels[1]["target"], "ad09a4ed-d1b6-47c3-ac85-acb531244a4d")
-        self.assertEqual(rels[1]["instrument"]["id"], "ad09a4ed-d1b6-47c3-ac85-acb531244a4d")
-        self.assertTrue(rels[1]["instrument"]["name"].startswith(b"kemen\xc3\xa7e".decode("utf-8")))
+        self.assertEqual(rels[0]["type"], "children")
+        self.assertEqual(rels[0]["type-id"], "12678b88-1adb-3536-890e-9b39b9a14b2d")
+        self.assertEqual(rels[0]["target"], "ad09a4ed-d1b6-47c3-ac85-acb531244a4d")
+        self.assertEqual(rels[0]["instrument"]["id"], "ad09a4ed-d1b6-47c3-ac85-acb531244a4d")
+        self.assertTrue(rels[0]["instrument"]["name"].startswith(b"kemen\xc3\xa7e".decode("utf-8")))
 
     def testDisambiguation(self):
         res = _common.open_and_parse_test_data(self.datadir, "dabdeb41-560f-4d84-aa6a-cf22349326fe.xml")

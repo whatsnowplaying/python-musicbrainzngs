@@ -13,14 +13,14 @@ class EventTest(unittest.TestCase):
     def testCorrectId(self):
         event_id = "770fb0b4-0ad8-4774-9275-099b66627355"
         res = _common.open_and_parse_test_data(
-            self.datadir, f"{event_id}-place-rels.xml"
+            self.datadir, f"{event_id}_inc=place-rels.xml"
         )
         self.assertEqual(event_id, res["event"]["id"])
 
     def testPlace(self):
         event_id = "770fb0b4-0ad8-4774-9275-099b66627355"
         res = _common.open_and_parse_test_data(
-            self.datadir, f"{event_id}-place-rels.xml"
+            self.datadir, f"{event_id}_inc=place-rels.xml"
         )
         place = res["event"]["place-relation-list"][0]["place"]
         self.assertEqual("7643f13a-dcda-4db4-8196-3ffcc1b99ab7", place["id"])
@@ -30,12 +30,12 @@ class EventTest(unittest.TestCase):
     def testType(self):
         event_id = "770fb0b4-0ad8-4774-9275-099b66627355"
         res = _common.open_and_parse_test_data(
-            self.datadir, f"{event_id}-place-rels.xml"
+            self.datadir, f"{event_id}_inc=place-rels.xml"
         )
         self.assertEqual("Concert", res["event"]["type"])
 
     def testEventElements(self):
-        filename = "e921686d-ba86-4122-bc3b-777aec90d231-tags-artist-rels.xml"
+        filename = "e921686d-ba86-4122-bc3b-777aec90d231_inc=tags_artist-rels.xml"
         res = _common.open_and_parse_test_data(self.datadir, filename)
         e = res["event"]
         keys = ["name", "life-span", "time", "setlist", "artist-relation-list", "tag-list"]
